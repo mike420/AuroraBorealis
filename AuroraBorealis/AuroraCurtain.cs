@@ -6,8 +6,8 @@ namespace AuroraBorealis;
 // The positions and colours are rewritten as time passes, so the curtain ripples and its rays brighten and fade.
 internal class AuroraCurtain
 {
-	private const int Columns = 90;
-	private const int Rows = 10;
+	private const int Columns = 160;
+	private const int Rows = 16;
 
 	private readonly int m_index;
 	private readonly float m_seed;
@@ -16,6 +16,7 @@ internal class AuroraCurtain
 	private readonly Vector3[] m_vertices = new Vector3[(Columns + 1) * (Rows + 1)];
 	private readonly Color32[] m_colours = new Color32[(Columns + 1) * (Rows + 1)];
 	private readonly float[] m_rays = new float[Columns + 1];
+	private readonly float[] m_rayHeights = new float[Columns + 1];
 
 	internal AuroraCurtain(Transform parent, Material material, int index)
 	{
@@ -45,14 +46,20 @@ internal class AuroraCurtain
 
 		m_object = new GameObject("AuroraCurtain" + index);
 		m_object.transform.SetParent(parent, worldPositionStays: false);
-		m_object.AddComponent<MeshFilter>().sharedMesh = m_mesh;
-		MeshRenderer renderer = m_object.AddComponent<MeshRenderer>();
-		renderer.sharedMaterial = material;
-		renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-		renderer.receiveShadows = false;
-		renderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
-		renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+		// Without a material the sky draws the mesh itself (see AuroraSky.OnPostRender), so there is no renderer
+		if (material != null)
+		{
+			m_object.AddComponent<MeshFilter>().sharedMesh = m_mesh;
+			MeshRenderer renderer = m_object.AddComponent<MeshRenderer>();
+			renderer.sharedMaterial = material;
+			renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+			renderer.receiveShadows = false;
+			renderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+			renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+		}
 	}
+
+	internal Mesh Mesh => m_mesh;
 
 	internal void SetActive(bool active)
 	{
@@ -70,30 +77,38 @@ internal class AuroraCurtain
 
 	/// <param name="count">How many curtains there are in all, so each takes its own distance and shade.</param>
 	/// <param name="radius">Distance of the nearest curtain from the camera.</param>
-	/// <param name="alpha">Overall brightness, 0 to 1.</param>
+	/// <param name="alpha">Overall brightness: 1 is the normal level, 2 is double.</param>
 	internal void Update(float time, int count, float radius, float alpha, float heightScale, float centreDegrees, float arcDegrees, AuroraColours colours)
 	{
 		float layer = count > 1 ? m_index / (float)(count - 1) : 0f;
 		float r = radius * (0.8f + 0.25f * layer);
-
-		// Each curtain is a little narrower than the arc and drifts, so they overlap without lining up
-		float arc = arcDegrees * Mathf.Deg2Rad * (1f - 0.18f * layer);
-		float centre = (centreDegrees + 12f * Mathf.Sin(time * 0.05f + m_seed)) * Mathf.Deg2Rad;
 		bool fullCircle = arcDegrees >= 359.5f;
+
+		// Each curtain covers only part of the arc, at its own spot, so the sky shows between them instead of one solid sheet
+		float span = fullCircle ? 1f : 0.5f + 0.3f * Mathf.Abs(Mathf.Sin(m_seed * 1.7f));
+		float spread = fullCircle ? 0f : Mathf.Sin(m_seed * 2.9f) * (1f - span) * 0.5f * arcDegrees;
+		float arc = arcDegrees * span * Mathf.Deg2Rad;
+		float centre = (centreDegrees + spread + 8f * Mathf.Sin(time * 0.05f + m_seed)) * Mathf.Deg2Rad;
+
+		// The curtains add their light together, so each gives less the more of them there are
+		float layerScale = 1.4f / (count + 1);
 
 		// Elevation above the horizon at the bottom and the top of the curtain
 		float baseElevation = (6f + 4f * layer) * Mathf.Deg2Rad;
-		float topElevation = baseElevation + (28f + 8f * Mathf.Sin(m_seed)) * heightScale * Mathf.Deg2Rad;
+		float topElevation = baseElevation + (30f + 8f * Mathf.Sin(m_seed)) * heightScale * Mathf.Deg2Rad;
 
-		// Rays: brightness along the curtain from drifting noise, so bright streaks form, slide along and die away
+		// Rays: bright streaks that form, slide along and die away. Each has its own strength and its own height.
 		for (int i = 0; i <= Columns; i++)
 		{
 			float u = i / (float)Columns;
-			float slow = Mathf.PerlinNoise(u * 5f + m_seed, time * 0.12f + m_seed);
-			float fast = Mathf.PerlinNoise(u * 23f - time * 0.35f + m_seed, m_seed * 2f + time * 0.2f);
-			float ray = Mathf.Clamp01(slow * 1.5f - 0.2f) * (0.45f + 0.55f * fast);
+			float slow = Mathf.PerlinNoise(u * 4f + m_seed, time * 0.1f + m_seed);
+			float mid = Mathf.PerlinNoise(u * 14f - time * 0.25f + m_seed, m_seed * 2f + time * 0.15f);
+			float fine = Mathf.PerlinNoise(u * 45f - time * 0.5f + m_seed * 3f, m_seed + time * 0.3f);
+			float body = Mathf.Clamp01(slow * 1.7f - 0.35f);
+			float streak = Mathf.Pow(Mathf.Clamp01(mid * 0.55f + fine * 0.6f), 2.2f);
 			float edge = fullCircle ? 1f : Mathf.SmoothStep(0f, 1f, Mathf.Min(u, 1f - u) * 6f);
-			m_rays[i] = ray * edge;
+			m_rays[i] = body * (0.08f + 0.92f * streak) * edge;
+			m_rayHeights[i] = Mathf.Lerp(0.35f, 1f, Mathf.Sqrt(streak));
 		}
 
 		int k = 0;
@@ -114,11 +129,13 @@ internal class AuroraCurtain
 				float flat = distance * Mathf.Cos(elevation);
 				m_vertices[k] = new Vector3(flat * Mathf.Sin(yaw), distance * Mathf.Sin(elevation), flat * Mathf.Cos(yaw));
 
-				// Bright just above the lower edge, which is sharp, then a long soft fade up the rays
-				float profile = Mathf.SmoothStep(0f, 1f, v * 9f) * Mathf.Pow(1f - v, 1.6f);
-				float a = profile * m_rays[i] * alpha;
-				Color colour = AuroraPalette.Evaluate(colours, u, v, time);
-				m_colours[k] = new Color(colour.r, colour.g, colour.b, Mathf.Clamp01(a));
+				// A sharp bright lower edge, then a soft fade up the ray that ends at the ray's own height. The colour runs from the base of each
+				// ray (t = 0) to its tip (t = 1), so the tall rays pick up their violet and pink tips.
+				float t = Mathf.Clamp01(v / m_rayHeights[i]);
+				float profile = Mathf.SmoothStep(0f, 1f, v * 10f) * Mathf.Pow(1f - t, 1.5f);
+				float a = profile * m_rays[i] * alpha * layerScale;
+				Color colour = AuroraPalette.Evaluate(colours, u, t, time);
+				m_colours[k] = (Color32)new Color(colour.r, colour.g, colour.b, Mathf.Clamp01(a));
 			}
 		}
 

@@ -9,17 +9,23 @@ internal class AuroraSky : MonoBehaviour
 {
 	private const float FadeSpeed = 0.25f;
 	private const float UpdateInterval = 1f / 30f;
+	// Valheim's cloud layer is a cylinder 500 m across from the camera that hides anything behind it, so the curtains hang inside it
+	// (the outer layers sit a little further out, and they sway a little, so the nearest reaches about 445 m).
+	private const float CurtainRadius = 400f;
 
+	// Fallback only, for when the plain vertex-colour shader is missing
 	private static readonly string[] ShaderNames =
 	{
+		"Sprites/Default",
 		"Legacy Shaders/Particles/Additive",
 		"Mobile/Particles/Additive",
-		"Particles/Standard Unlit",
-		"Sprites/Default"
+		"Particles/Standard Unlit"
 	};
 
 	private readonly List<AuroraCurtain> m_curtains = new List<AuroraCurtain>();
 	private Material m_material;
+	private Material m_drawMaterial;   // Unity's plain vertex-colour shader, used to draw the meshes straight into the camera
+	private bool m_visible;
 	private float m_intensity;
 	private float m_nextUpdate;
 	private float m_clock;
@@ -35,12 +41,56 @@ internal class AuroraSky : MonoBehaviour
 
 	private void Awake()
 	{
-		m_material = MakeMaterial();
+		m_drawMaterial = MakeDrawMaterial();
+		if (m_drawMaterial != null)
+		{
+			Camera.onPostRender += OnCameraPostRender;
+		}
+		else
+		{
+			m_material = MakeMaterial();
+		}
+	}
+
+	// Additive, no depth write, drawn two-sided; the terrain still hides it because the depth test stays on
+	private static Material MakeDrawMaterial()
+	{
+		Shader shader = Shader.Find("Hidden/Internal-Colored");
+		if (shader == null)
+		{
+			return null;
+		}
+		Material material = new Material(shader) { name = "AuroraBorealisDraw", hideFlags = HideFlags.HideAndDontSave };
+		material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+		material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+		material.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+		material.SetInt("_ZWrite", 0);
+		material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+		return material;
+	}
+
+	private void OnCameraPostRender(Camera camera)
+	{
+		if (!m_visible || m_curtains.Count == 0 || camera != Utils.GetMainCamera())
+		{
+			return;
+		}
+		m_drawMaterial.SetPass(0);
+		Matrix4x4 matrix = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
+		foreach (AuroraCurtain curtain in m_curtains)
+		{
+			Graphics.DrawMeshNow(curtain.Mesh, matrix);
+		}
 	}
 
 	private void OnDestroy()
 	{
+		Camera.onPostRender -= OnCameraPostRender;
 		DestroyCurtains();
+		if (m_drawMaterial != null)
+		{
+			Destroy(m_drawMaterial);
+		}
 		if (m_material != null)
 		{
 			Destroy(m_material);
@@ -67,7 +117,7 @@ internal class AuroraSky : MonoBehaviour
 			Debug.LogWarning("AuroraBorealis: no suitable shader found for the aurora");
 			return null;
 		}
-		Material material = new Material(shader) { name = "AuroraBorealis", renderQueue = 2900 };
+		Material material = new Material(shader) { name = "AuroraBorealis", renderQueue = 3000 };
 		// Neutral tint for the particle shaders, which double it
 		if (material.HasProperty("_TintColor"))
 		{
@@ -123,7 +173,7 @@ internal class AuroraSky : MonoBehaviour
 
 	private void LateUpdate()
 	{
-		if (m_material == null)
+		if (m_material == null && m_drawMaterial == null)
 		{
 			return;
 		}
@@ -131,6 +181,7 @@ internal class AuroraSky : MonoBehaviour
 		m_intensity = Mathf.MoveTowards(m_intensity, TargetIntensity(), FadeSpeed * Time.deltaTime);
 		Camera camera = Utils.GetMainCamera();
 		bool visible = m_intensity > 0.002f && camera != null;
+		m_visible = visible;
 
 		int count = MainConfig.curtains.Value;
 		if (m_curtains.Count != count)
@@ -138,7 +189,7 @@ internal class AuroraSky : MonoBehaviour
 			DestroyCurtains();
 			for (int i = 0; i < count; i++)
 			{
-				m_curtains.Add(new AuroraCurtain(transform, m_material, i));
+				m_curtains.Add(new AuroraCurtain(transform, m_drawMaterial != null ? null : m_material, i));
 			}
 		}
 
@@ -160,9 +211,8 @@ internal class AuroraSky : MonoBehaviour
 		}
 		m_nextUpdate = Time.time + UpdateInterval;
 
-		// Keep the curtains inside the camera's far plane, with room for the layers further out
-		float radius = Mathf.Clamp(camera.farClipPlane * 0.7f, 150f, 3500f) / 1.05f;
-		float alpha = Mathf.Clamp01(m_intensity);
+		float radius = Mathf.Min(CurtainRadius, camera.farClipPlane * 0.7f / 1.05f);
+		float alpha = Mathf.Clamp(m_intensity, 0f, 2f);
 		float height = MainConfig.height.Value / 100f;
 		foreach (AuroraCurtain curtain in m_curtains)
 		{
