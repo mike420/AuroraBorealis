@@ -28,7 +28,7 @@ Thank you for your support, and happy gaming! ...... (A Paypal account is NOT re
 
 [size=5][b]Configuration[/b][/size]
 
-Settings are in [b]BepInEx/config/MagicMike.AuroraBorealis.cfg[/b] (or edit them in r2modman/Gale/[url=https://thunderstore.io/c/valheim/p/Azumatt/Official_BepInEx_ConfigurationManager/]Configuration Manager[/url]).
+Settings are in [b]BepInEx/config/MagicMike.AuroraBorealis.cfg[/b], press F7, in game or on the main menu, to open a panel with the settings of all your installed Magic Mike mods, or edit them in r2modman/Gale/[url=https://thunderstore.io/c/valheim/p/Azumatt/Official_BepInEx_ConfigurationManager/]Configuration Manager[/url].
 
 General Settings [b]On[/b]
 [list]
@@ -98,13 +98,20 @@ For Nexus downloads you will need to install manually.
 [size=5][b]Plugins Created by Magic Mike[/b][/size]
 
 [list]
-[*][url=https://thunderstore.io/c/valheim/p/MagicMike/CoreWoodExtras/]Corewood Extras[/url]
-[*][url=https://thunderstore.io/c/valheim/p/MagicMike/CorewoodAdditions/]Corewood Additions[/url]
-[*][url=https://thunderstore.io/c/valheim/p/MagicMike/MyDirtyHoe/]My Dirty Hoe[/url]
-[*][url=https://thunderstore.io/c/valheim/p/MagicMike/ChestPreview/]Chest Preview[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/CoreWoodExtras]Corewood Extras[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/CorewoodFortified]Corewood Fortified[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/CorewoodAdditions]Corewood Additions[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/MyDirtyHoe]My Dirty Hoe[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/ChestPreview]Chest Preview[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/YabbaDabbaDoo]YabbaDabbaDoo[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/BetterBuildMenu]Better Build Menu[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/BetterEquipSlots]Better Equip Slots[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/ExtraInventorySlots]Extra Inventory Slots[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/VillagePlebs]Village Plebs[/url]
+[*][url=https://valheim.hexium.gg/mods/MagicMike/EinherjarBodies]Einherjar Bodies[/url]
 [/list]
 
 
 [size=5][b]Comments/Suggestions/Help[/b][/size]
 
-[url=https://www.nexusmods.com/profile/MagicMikeMods/mods]Nexus[/url]
+[url=https://www.nexusmods.com/valheim/mods/2806]Nexus[/url], [url=https://discord.gg/mnr36G6J4x]Discord[/url]

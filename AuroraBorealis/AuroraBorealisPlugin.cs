@@ -41,13 +41,20 @@ public class AuroraBorealisPlugin : BaseUnityPlugin
 		// Nothing to draw on a dedicated server
 		if (MainConfig.modEnabled.Value && SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
 		{
+			Translations.Load(this);
 			harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginGUID);
 			AuroraSky.Create(gameObject);
 		}
 	}
 
+	private void Update()
+	{
+		Translations.Tick();
+	}
+
 	private void OnDestroy()
 	{
+		Translations.Unload();
 		harmony?.UnpatchSelf();
 	}
 }
