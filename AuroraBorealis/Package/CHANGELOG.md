@@ -11,6 +11,7 @@
     <td>
     <ul>
       <li>Valheim 1.0.30 font fix.</li>
+      <li>Enable Plugin now works in game, no restart needed.</li>
     </ul>
     </td>
   </tr>
