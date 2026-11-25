@@ -13,7 +13,7 @@ namespace AuroraBorealis;
 public class AuroraBorealisPlugin : BaseUnityPlugin
 {
 	public const string PluginName = "AuroraBorealis";
-	public const string PluginVersion = "1.0.0";
+	public const string PluginVersion = "1.0.3";
 	public const string PluginAuthor = "MagicMike";
 	internal const string PluginGUID = "MagicMike.AuroraBorealis";
 	internal const string PluginCopy = "Copyright © MagicMike 2026";
