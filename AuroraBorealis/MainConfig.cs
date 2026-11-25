@@ -35,7 +35,7 @@ internal static class MainConfig
 
 	public static void InitConfigs(ConfigFile config)
 	{
-		modEnabled = config.BindConfigInOrder("General Settings", "Enable Plugin", defaultValue: true, "Enable plugin.\n(Restart required. It is read before connecting to a server, so it is a local setting).\n", synced: false, sectionOrder: true, settingOrder: true);
+		modEnabled = config.BindConfigInOrder("General Settings", "Enable Plugin", defaultValue: true, "Enable plugin. Off hides the aurora straight away.\n(A local setting, never synced from a server).\n", synced: false, sectionOrder: true, settingOrder: true);
 
 		alwaysVisible = config.BindConfigInOrder("Aurora", "Always Visible", defaultValue: false, "On: the aurora shows all day as well as at night. Off: it fades in at dusk and out at dawn.", synced: false, sectionOrder: true, settingOrder: true);
 		brightness = config.BindConfigInOrder("Aurora", "Brightness", defaultValue: 100, "How bright the aurora is, as a percentage. 0 hides it.", synced: false, sectionOrder: true, settingOrder: true, acceptableValues: new AcceptableValueRange<int>(0, 200));

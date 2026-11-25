@@ -159,7 +159,7 @@ internal class AuroraSky : MonoBehaviour
 	private static float TargetIntensity()
 	{
 		Player player = Player.m_localPlayer;
-		if (player == null || MainConfig.brightness.Value <= 0 || player.InInterior())
+		if (!MainConfig.modEnabled.Value || player == null || MainConfig.brightness.Value <= 0 || player.InInterior())
 		{
 			return 0f;
 		}

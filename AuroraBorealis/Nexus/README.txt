@@ -43,7 +43,7 @@ Settings are in [b]BepInEx/config/MagicMike.AuroraBorealis.cfg[/b], press F7, in
 
 General Settings [b]On[/b]
 [list]
-[*][b]Enable Plugin (restart required)[/b] (default On)
+[*][b]Enable Plugin[/b] (default On)
 [/list]
 
 Aurora [b]Off[/b]

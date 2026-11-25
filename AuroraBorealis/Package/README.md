@@ -45,7 +45,7 @@ Settings are in `BepInEx/config/MagicMike.AuroraBorealis.cfg`, press F7, in game
 
 | Section | Setting | Default |
 |---|---|---|
-| General Settings | Enable Plugin (restart required) | On |
+| General Settings | Enable Plugin | On |
 | Aurora | Always Visible | Off |
 | Aurora | Brightness (0-200%) | 100 |
 | Aurora | Colours | Classic |

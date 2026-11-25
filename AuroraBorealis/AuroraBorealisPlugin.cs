@@ -13,7 +13,7 @@ namespace AuroraBorealis;
 public class AuroraBorealisPlugin : BaseUnityPlugin
 {
 	public const string PluginName = "AuroraBorealis";
-	public const string PluginVersion = "1.0.3";
+	public const string PluginVersion = "1.0.4";
 	public const string PluginAuthor = "MagicMike";
 	internal const string PluginGUID = "MagicMike.AuroraBorealis";
 	internal const string PluginCopy = "Copyright © MagicMike 2026";
@@ -38,8 +38,8 @@ public class AuroraBorealisPlugin : BaseUnityPlugin
 
 		Config.Save();
 
-		// Nothing to draw on a dedicated server
-		if (MainConfig.modEnabled.Value && SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
+		// Nothing to draw on a dedicated server. The sky is always created, so Enable Plugin can be switched in game: off just fades it out.
+		if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
 		{
 			Translations.Load(this);
 			harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginGUID);
